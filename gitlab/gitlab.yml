@@ -1,0 +1,93 @@
+version: '3.7'
+
+services:
+
+  gitlab:
+    image: gitlab/gitlab-ce:11.9.8-ce.0
+    restart: always
+    container_name: gitlab
+    ports:
+      - '80:80'
+      - '443:443'
+      - '10022:22'
+    environment:
+      GITLAB_OMNIBUS_CONFIG: |
+        external_url 'https://lab.example.com'
+        gitlab_rails['gitlab_shell_ssh_port'] = 10022
+        gitlab_rails['time_zone'] = 'Beijing'
+        gitlab_rails['artifacts_object_store_enabled'] = true
+        gitlab_rails['artifacts_object_store_direct_upload'] = true
+        gitlab_rails['artifacts_object_store_remote_directory'] = "gitlab.example.com/artifacts"
+        gitlab_rails['artifacts_object_store_connection'] = {
+          'provider' => 'AWS',
+          'region' => 'cn-northwest-1',
+          'use_iam_profile' => true,
+          'host' => 's3.cn-northwest-1.amazonaws.com.cn'
+        }
+        gitlab_rails['lfs_object_store_enabled'] = true
+        gitlab_rails['lfs_object_store_direct_upload'] = true
+        gitlab_rails['lfs_object_store_remote_directory'] = "gitlab.example.com/lfs"
+        gitlab_rails['lfs_object_store_connection'] = {
+          'provider' => 'AWS',
+          'region' => 'cn-northwest-1',
+          'use_iam_profile' => true,
+          'host' => 's3.cn-northwest-1.amazonaws.com.cn'
+        }
+        gitlab_rails['uploads_object_store_enabled'] = true
+        gitlab_rails['uploads_object_store_direct_upload'] = true
+        gitlab_rails['uploads_object_store_remote_directory'] = "gitlab.example.com/uploads"
+        gitlab_rails['uploads_object_store_connection'] = {
+          'provider' => 'AWS',
+          'region' => 'cn-northwest-1',
+          'use_iam_profile' => true,
+          'host' => 's3.cn-northwest-1.amazonaws.com.cn'
+        }
+        gitlab_rails['backup_keep_time'] = 259200
+        gitlab_rails['backup_upload_remote_directory'] = 'gitlab.example.com/backup'
+        gitlab_rails['backup_upload_connection'] = {
+          'provider' => 'AWS',
+          'region' => 'cn-northwest-1',
+          'use_iam_profile' => true,
+          'host' => 's3.cn-northwest-1.amazonaws.com.cn'
+        }
+        gitlab_rails['smtp_enable'] = true
+        gitlab_rails['smtp_address'] = "smtp.exmail.qq.com"
+        gitlab_rails['smtp_port'] = 465
+        gitlab_rails['smtp_user_name'] = "gitlab@example.com"
+        gitlab_rails['smtp_password'] = "$GITLAB_EMAIL_PASSWORD"
+        gitlab_rails['smtp_domain'] = "example.com"
+        gitlab_rails['smtp_authentication'] = "login"
+        gitlab_rails['smtp_ssl'] = true
+        gitlab_rails['gitlab_email_from'] = 'gitlab@example.com'
+        gitlab_rails['gitlab_email_reply_to'] = 'gitlab@example.com'
+        gitlab_rails['incoming_email_enabled'] = true
+        gitlab_rails['incoming_email_address'] = "gitlab@example.com"
+        gitlab_rails['incoming_email_email'] = "gitlab@example.com"
+        gitlab_rails['incoming_email_password'] = "$GITLAB_EMAIL_PASSWORD"
+        gitlab_rails['incoming_email_host'] = "imap.exmail.qq.com"
+        gitlab_rails['incoming_email_port'] = 993
+        gitlab_rails['incoming_email_ssl'] = true
+        nginx['ssl_certificate'] = "/etc/gitlab/ssl/wildcard.example.com.crt"
+        nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/wildcard.example.com.key"
+        nginx['hsts_max_age'] = 31536000
+        nginx['hsts_include_subdomains'] = true
+        nginx['custom_nginx_config'] = "include /var/opt/gitlab/nginx/vhost/*.conf;"
+        pages_external_url "https://example.com/"
+        gitlab_pages['inplace_chroot'] = true
+        pages_nginx['redirect_http_to_https'] = true
+        pages_nginx['ssl_certificate'] = "/etc/gitlab/ssl/wildcard.example.com.crt"
+        pages_nginx['ssl_certificate_key'] = "/etc/gitlab/ssl/wildcard.example.com.key"
+    volumes:
+      - /srv/docker/gitlab/config:/etc/gitlab
+      - /srv/docker/gitlab/data:/var/opt/gitlab
+      - /srv/docker/gitlab/logs:/var/log/
+      - ./ssl:/etc/gitlab/ssl
+      - ./nginx/vhost:/var/opt/gitlab/nginx/vhost
+      - ./nginx/html:/var/opt/gitlab/nginx/html
+      - /etc/letsencrypt:/var/opt/gitlab/nginx/letsencrypt
+    networks:
+      - gitlab
+
+networks:
+  gitlab:
+    name:  gitlab

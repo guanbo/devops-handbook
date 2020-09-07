@@ -1,0 +1,14 @@
+node_modules
+npm-debug.log
+.env
+*/bin
+*/obj
+.vscode
+
+gitlab/nginx/vhost/
+gitlab/nginx/html/
+gitlab/ssl/
+gitlab/docker-compose.yml
+redmine/configuration.yml
+
+data/

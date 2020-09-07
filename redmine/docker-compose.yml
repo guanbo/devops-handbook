@@ -1,0 +1,44 @@
+version: "3.7"
+
+services: 
+
+  redmine:
+    image: redmine:3.4.6
+    container_name: redmine
+    entrypoint:
+      - bash
+    command:
+      - /usermod.sh
+    restart: always
+    depends_on:
+      - mysql
+    environment:
+      - REDMINE_DB_MYSQL=mysql
+      - REDMINE_DB_PASSWORD
+      - REDMINE_EMAIL_PASSWORD
+    volumes:
+      - ./usermod.sh:/usermod.sh
+      - ./configuration.yml:/usr/src/redmine/config/configuration.yml
+      - /srv/docker/redmine/files:/usr/src/redmine/files
+      - /srv/docker/gitlab/data/git-data/repositories:/usr/src/redmine/git:ro
+    networks:
+      - redmine
+      - gitlab
+
+  mysql:
+    image: mysql:5.7
+    container_name: redmine_mysql
+    restart: always
+    environment:
+      - MYSQL_DATABASE=redmine
+      - MYSQL_ROOT_PASSWORD=$REDMINE_DB_PASSWORD
+    volumes:
+      - ./utf8mb4.cnf:/etc/mysql/conf.d/utf8mb4.cnf
+      - /srv/docker/mysql:/var/lib/mysql
+    networks:
+      - redmine
+
+networks:
+  gitlab:
+    external: true
+  redmine:
